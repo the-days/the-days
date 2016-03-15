@@ -1,0 +1,61 @@
+body{
+   background-color: whitesmoke;
+   height: 100%;
+   overflow-y: hidden;
+}
+
+svg {
+   background-color: white;
+   font-family: 'Avenir Next', 'Noto Sans', 'Segoe UI';
+}
+
+.axis {
+   stroke: white;
+   fill: white;
+   stroke-width: 3px;
+}
+
+line.tick {
+  stroke: #ccc;
+  stroke-width: 1px;
+}
+
+text {
+    text-anchor: middle;
+    user-select: none;
+}
+text.title {
+   font-size: 2rem;
+   text-align: center;
+   dominant-baseline: central;
+}
+text.months {
+  text-anchor: start;
+}
+text.months, text.temp {
+ fill: #ccc;
+ font-size: 1vw;
+ dominant-baseline: central;
+}
+
+text.footnote {
+  font-size: 1.2vw;
+  fill: #ccc;
+  text-anchor: end;
+}
+
+circle.axis {
+   stroke: none;
+   stroke-width: 1px;
+   fill: none;
+}
+
+circle.axis.record {
+   stroke: #ccc;
+   stroke-width: 1.2px;
+   opacity: 0.5;
+}
+
+circle.precipitation {
+   fill: rgba(186,201,223,0.4)
+}
