@@ -1,12 +1,12 @@
 {
-  "name": "weather-radials",
+  "name": "the-days",
   "version": "0.1.0",
-  "description": "weather radials",
+  "description": "He who lives day by day, who dies hour by hour, is here and there.",
   "main": "index.html",
   "scripts": {
     "start": "python -m SimpleHTTPServer 2488",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC"
+  "license": "MIT"
 }
