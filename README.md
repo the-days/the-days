@@ -4,7 +4,7 @@ He who lives day by day,  who dies hour by hour, is here and there.
 This is a small implementation of [weather radials](http://weather-radials.com/) inspired by [raureif](http://raureif.net/en/). 
 It digests daily weather of 2015 into a vivid infograph.
 
-# Demo
+# [Demo](https://days.crvv.me)
 ![It should look like this](example.png)
 
 # Usage
