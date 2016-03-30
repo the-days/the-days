@@ -17,7 +17,9 @@ var api = `Shanghai.json`,
   highest = 60,
   maxPRCP = 200,
   maxPRCPRadius = width / 16,
-  svg = d3.select('#app').append('svg').attr('width', width).attr('height', height);
+  svg = d3.select('svg').attr('width', width).attr('height', height);
+  // remove body unresolved when width and height is setup
+  d3.select('#app').attr('unresolved', null);
 origin = svg.append('g')
   .attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')'),
   rScale = d3.scale.linear()
