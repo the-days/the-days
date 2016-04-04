@@ -9,3 +9,4 @@ It digests daily weather of 2015 into a vivid infograph.
 
 # Usage
 Use `npm start` to start server and visit `http://localhost:2488`.
+On the website, use `⌘+s` or `⌃+s` to save as svg files to local system
