@@ -232,4 +232,25 @@ d3.json(api, function(err, json) {
     .attr('y', height - margin).attr('dy', -margin)
     .text(code)
     .attr('class', 'footnote')
+  svg.attr('title', json.STATION.NAME)
 });
+
+Mousetrap.bind(['command+s', 'ctrl+s'], function saveRadialAsSVG() {
+  var domNode = document.getElementsByTagName('svg')[0];
+  var fileName = d3.select(domNode).attr('title') + '.svg';
+  saveAsSVG(domNode, fileName);
+  return false;
+});
+
+/**
+ * save as svg file given DOM node and fileName
+ * @param domNode the DOM node that should be save as svg
+ * @param fileName the expected file name saved to local filesystem
+ */
+var saveAsSVG = function(domNode, fileName) {
+  var serializer = new XMLSerializer();
+  var svgBlob = new Blob(
+    [serializer.serializeToString(domNode)], { type: 'image/svg+xml' }
+  );
+  saveAs(svgBlob, fileName);
+}
