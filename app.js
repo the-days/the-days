@@ -64,7 +64,9 @@ var drawRadial = function(chart, cl, data, low, high) {
     var cx = (x1 + x2) / 2,
       cy = (y1 + y2) / 2;
     // var opacity = 0.2 + ( 1 - (d.PRCP / maxPRCP) ) * 0.6;
-    chart.append('circle').attr('cx', cx).attr('cy', cy).attr('r', d.PRCP / maxPRCP * maxPRCPRadius).attr('class', 'precipitation');
+    chart.append('circle').attr('cx', cx).attr('cy', cy)
+    .attr('r', d.PRCP / maxPRCP * maxPRCPRadius)
+    .attr('class', 'precipitation')
   });
   data.forEach(d => {
     /* scale x and y */
@@ -160,7 +162,8 @@ d3.json(api, function(err, json) {
     .text(function(d) {
       return d.month
     })
-    .attr('class', 'months');
+    .attr('class', 'months')
+    .style('font-size', 0.013 * height)
 
   //temperature axis labels
   var circleAxis = d3.range(lowest + 20, highest, 20)
@@ -203,7 +206,8 @@ d3.json(api, function(err, json) {
     .text(function(d) {
       return d.temp + '°C'
     })
-    .attr('class', 'temp');
+    .attr('class', 'temp')
+    .style('font-size', 0.013 * height)
   //temperature and precipitation
 
   //this year's temperature
@@ -219,6 +223,7 @@ d3.json(api, function(err, json) {
     .attr('y', height / 2)
     .text(json.STATION.NAME)
     .attr('class', 'title')
+    .style('font-size', 0.036 * height)
 
   // geolocation
   var geolocation =
@@ -227,9 +232,34 @@ d3.json(api, function(err, json) {
     .attr('y', height - margin)
     .text(geolocation)
     .attr('class', 'footnote')
+    .style('font-size', 0.018 * height)
+
   var code = json.STATION.CODE;
   svg.append('text').attr('x', width - margin)
     .attr('y', height - margin).attr('dy', -margin)
     .text(code)
     .attr('class', 'footnote')
+    .style('font-size', 0.018 * height)
+
+  svg.attr('title', json.STATION.NAME)
 });
+
+Mousetrap.bind(['command+s', 'ctrl+s'], function saveRadialAsSVG() {
+  var domNode = document.getElementsByTagName('svg')[0];
+  var fileName = d3.select(domNode).attr('title') + '.svg';
+  saveAsSVG(domNode, fileName);
+  return false;
+});
+
+/**
+ * save as svg file given DOM node and fileName
+ * @param domNode the DOM node that should be save as svg
+ * @param fileName the expected file name saved to local filesystem
+ */
+var saveAsSVG = function(domNode, fileName) {
+  var serializer = new XMLSerializer();
+  var svgBlob = new Blob(
+    [serializer.serializeToString(domNode)], { type: 'image/svg+xml' }
+  );
+  saveAs(svgBlob, fileName);
+}

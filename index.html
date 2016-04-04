@@ -50,7 +50,6 @@
           user-select: none;
       }
       text.title {
-         font-size: 2rem;
          text-align: center;
          dominant-baseline: central;
       }
@@ -59,12 +58,10 @@
       }
       text.months, text.temp {
        fill: #ccc;
-       font-size: 1.3vh;
        dominant-baseline: central;
       }
 
       text.footnote {
-        font-size: 1.8vh;
         fill: #ccc;
         text-anchor: end;
       }
@@ -82,13 +79,16 @@
       }
 
       circle.precipitation {
-         fill: rgba(186,201,223,0.4)
+         fill: #bac9df;
+         fill-opacity: 0.4;
       }
       </style>
     </svg>
   </div>
   <script src="//cdn.bootcss.com/d3/3.5.16/d3.min.js"></script>
   <script src="//cdn.bootcss.com/moment.js/2.11.2/moment.min.js"></script>
+  <script src="//cdn.bootcss.com/mousetrap/1.4.6/mousetrap.min.js"></script>
+  <script src="//cdn.bootcss.com/FileSaver.js/2014-11-29/FileSaver.min.js"></script>
   <script src="app.js"></script>
 </body>
 
