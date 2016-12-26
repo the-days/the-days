@@ -1,4 +1,6 @@
 # the-days
+[![Code Climate](https://codeclimate.com/github/JLHwung/the-days/badges/gpa.svg)](https://codeclimate.com/github/JLHwung/the-days)
+
 He who lives day by day,  who dies hour by hour, is here and there.
 
 This is a small implementation of [weather radials](http://weather-radials.com/) inspired by [raureif](http://raureif.net/en/). 
