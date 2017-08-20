@@ -20,19 +20,19 @@ const api = `Shanghai.json`,
   svg = d3.select("svg").attr("width", width).attr("height", height);
 // remove body unresolved when width and height is setup
 d3.select("#app").attr("unresolved", null);
-(origin = svg
+
+const origin = svg
   .append("g")
-  .attr(
-    "transform",
-    "translate(" + width / 2 + "," + height / 2 + ")"
-  )), (rScale = d3.scale
-  .linear()
+  .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+const rScale = d3
+  .scaleLinear()
   .domain([lowest, highest])
-  .range([0, height / 2 - margin])), (yScale = (day, temp) =>
-  -Math.cos(angleScale(day) * Math.PI / 180) *
-  rScale(parseInt(temp))), (xScale = (day, temp) =>
-  Math.sin(angleScale(day) * Math.PI / 180) *
-  rScale(parseInt(temp))), (angleScale = d3.scale.linear().range([0, 360]));
+  .range([0, height / 2 - margin]);
+const yScale = (day, temp) =>
+  -Math.cos(angleScale(day) * Math.PI / 180) * rScale(parseInt(temp));
+const xScale = (day, temp) =>
+  Math.sin(angleScale(day) * Math.PI / 180) * rScale(parseInt(temp));
+const angleScale = d3.scaleLinear().range([0, 360]);
 
 const drawRadial = (chart, cl, data, low, high) => {
   /* define gradients */
