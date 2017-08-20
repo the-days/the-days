@@ -9,15 +9,7 @@ maxTemperature: \[Degree]C
 Precipitation: cm
 DatetimeValue: YYYYMMDD
 */
-var api = `Shanghai.json`,
-  margin = 20,
-  width = Math.min(window.innerWidth, 1.3 * window.innerHeight) - margin,
-  height = window.innerHeight - margin,
-  lowest = -40,
-  highest = 60,
-  maxPRCP = 200,
-  maxPRCPRadius = width / 16,
-  svg = d3.select('svg').attr('width', width).attr('height', height);
+const api = `Shanghai.json`, margin = 20, width = Math.min(window.innerWidth, 1.3 * window.innerHeight) - margin, height = window.innerHeight - margin, lowest = -40, highest = 60, maxPRCP = 200, maxPRCPRadius = width / 16, svg = d3.select('svg').attr('width', width).attr('height', height);
   // remove body unresolved when width and height is setup
   d3.select('#app').attr('unresolved', null);
 origin = svg.append('g')
@@ -25,24 +17,20 @@ origin = svg.append('g')
   rScale = d3.scale.linear()
   .domain([lowest, highest])
   .range([0, height / 2 - margin]),
-  yScale = function(day, temp) {
-    return -Math.cos(angleScale(day) * Math.PI / 180) * rScale(parseInt(temp))
-  },
-  xScale = function(day, temp) {
-    return Math.sin(angleScale(day) * Math.PI / 180) * rScale(parseInt(temp))
-  },
+  yScale = (day, temp) => -Math.cos(angleScale(day) * Math.PI / 180) * rScale(parseInt(temp)),
+  xScale = (day, temp) => Math.sin(angleScale(day) * Math.PI / 180) * rScale(parseInt(temp)),
   angleScale = d3.scale.linear()
   .range([0, 360]);
 
-var drawRadial = function(chart, cl, data, low, high) {
+const drawRadial = (chart, cl, data, low, high) => {
   /* define gradients */
-  var gradient = origin.
+  const gradient = origin.
   append('defs').append('radialGradient')
     .attr('gradientUnits', 'userSpaceOnUse')
     .attr('cx', 0)
     .attr('cy', 0)
     .attr('r', '33%')
-    .attr('id', `heatGradient`)
+    .attr('id', `heatGradient`);
   gradient.append('stop').attr('offset', '0%').attr('stop-color', 'rgb(0,24,35)');
   gradient.append('stop').attr('offset', '15%').attr('stop-color', 'rgb(0,59,93)');
   gradient.append('stop').attr('offset', '35%').attr('stop-color', 'rgb(30,107,154)');
@@ -52,17 +40,13 @@ var drawRadial = function(chart, cl, data, low, high) {
   gradient.append('stop').attr('offset', '93%').attr('stop-color', 'rgb(230,108,86)');
   gradient.append('stop').attr('offset', '100%').attr('stop-color', 'rgb(105, 37, 19)');
   /* draw temperature and precipitation */
-  var maxPRCP = d3.max(data, d => parseInt(d.PRCP));
+  const maxPRCP = d3.max(data, d => parseInt(d.PRCP));
 
   data.forEach(d => {
     /* scale x and y */
-    var x1 = xScale(d.index, d[low]),
-      x2 = xScale(d.index, d[high]),
-      y1 = yScale(d.index, d[low]),
-      y2 = yScale(d.index, d[high]);
+    const x1 = xScale(d.index, d[low]), x2 = xScale(d.index, d[high]), y1 = yScale(d.index, d[low]), y2 = yScale(d.index, d[high]);
     /* draw precipitation */
-    var cx = (x1 + x2) / 2,
-      cy = (y1 + y2) / 2;
+    const cx = (x1 + x2) / 2, cy = (y1 + y2) / 2;
     // var opacity = 0.2 + ( 1 - (d.PRCP / maxPRCP) ) * 0.6;
     chart.append('circle').attr('cx', cx).attr('cy', cy)
     .attr('r', d.PRCP / maxPRCP * maxPRCPRadius)
@@ -70,10 +54,7 @@ var drawRadial = function(chart, cl, data, low, high) {
   });
   data.forEach(d => {
     /* scale x and y */
-    var x1 = xScale(d.index, d[low]),
-      x2 = xScale(d.index, d[high]),
-      y1 = yScale(d.index, d[low]),
-      y2 = yScale(d.index, d[high]);
+    const x1 = xScale(d.index, d[low]), x2 = xScale(d.index, d[high]), y1 = yScale(d.index, d[low]), y2 = yScale(d.index, d[high]);
     /* draw temperature */
     chart.append('line')
       .attr('x1', x1)
@@ -83,16 +64,16 @@ var drawRadial = function(chart, cl, data, low, high) {
       .attr('class', cl).style('stroke', `url(#heatGradient)`);
   })
 };
-var mathematica_preprocess = function(json) {
-  var data = json.DATA;
+const mathematica_preprocess = json => {
+  const data = json.DATA;
   return data[3].map((v, k) => ({
     DATE: v,
     TMIN: data[0][k],
     TMAX: data[1][k],
     PRCP: data[2][k] * 10
   }));
-}
-d3.json(api, function(err, json) {
+};
+d3.json(api, (err, json) => {
   json.DATA = mathematica_preprocess(json);
   angleScale.domain([0, json.DATA.length - 1]);
   json.DATA.forEach((_, k, arr) => {
@@ -100,13 +81,12 @@ d3.json(api, function(err, json) {
     arr[k].max = arr[k].TMAX;
     arr[k].index = k;
   });
-  var min = d3.min(json.DATA, d => parseInt(d.min)),
-    max = d3.max(json.DATA, d => parseInt(d.max));
+  const min = d3.min(json.DATA, d => parseInt(d.min)), max = d3.max(json.DATA, d => parseInt(d.max));
 
-  var months = [];
+  const months = [];
   //find index for months based on data
   json.DATA.forEach((d, i) => {
-    var day = moment(d.DATE, 'YYYYMMDD');
+    const day = moment(d.DATE, 'YYYYMMDD');
     if (i === 0 || !moment(json.DATA[i - 1].DATE).isSame(day, "month")) {
       months.push({
         month: day.format('MMM').toUpperCase(),
@@ -119,23 +99,17 @@ d3.json(api, function(err, json) {
   origin.selectAll('circle.axis')
     .data(d3.range(lowest + 20, highest - 10, 10))
     .enter().append('circle')
-    .attr('r', function(d) {
-      return rScale(d)
-    })
+    .attr('r', d => rScale(d))
     .attr('class', 'axis record')
 
   //axis lines
-  var axis = origin.append('g');
+  const axis = origin.append('g');
 
   axis.selectAll('line.axis')
     .data(months)
     .enter().append('line')
-    .attr('x2', function(d) {
-      return xScale(d.index, 41)
-    })
-    .attr('y2', function(d) {
-      return yScale(d.index, 41)
-    })
+    .attr('x2', d => xScale(d.index, 41))
+    .attr('y2', d => yScale(d.index, 41))
     .attr('class', 'axis');
   axis.selectAll('line.tick')
     .data(months)
@@ -146,51 +120,39 @@ d3.json(api, function(err, json) {
     .attr('y2', d => yScale(d.index, highest - 10.2))
     .attr('class', 'tick')
 
-  var monthLabels = months
+  const monthLabels = months;
   axis.selectAll('text.months')
     .data(monthLabels)
     .enter().append('text')
-    .attr('x', function(d) {
-      return xScale(0, highest - 12)
-    })
-    .attr('y', function(d) {
-      return yScale(0, highest - 12)
-    })
+    .attr('x', d => xScale(0, highest - 12))
+    .attr('y', d => yScale(0, highest - 12))
     .attr('dx', '.25em')
     .attr('transform', (d) => {
       return `rotate(${angleScale(d.index)})`;
     })
-    .text(function(d) {
-      return d.month
-    })
+    .text(d => d.month)
     .attr('class', 'months')
     .style('font-size', 0.013 * height)
 
   //temperature axis labels
-  var circleAxis = d3.range(lowest + 20, highest, 20)
-    .reduce(function(p, d) {
-      return p.concat([{
-        temp: d,
-        index: 180
-      }, {
-        temp: d,
-        index: 0
-      }])
-    }, []);
+  const circleAxis = d3.range(lowest + 20, highest, 20)
+    .reduce((p, d) => p.concat([{
+    temp: d,
+    index: 180
+  }, {
+    temp: d,
+    index: 0
+  }]), []);
 
-  var textPadding = {
+  const textPadding = {
     dx: 2*window.innerWidth/100,
     dy: 1.4*window.innerHeight/100
   };
   origin.selectAll('text.temp')
     .data(circleAxis)
     .enter().append('rect')
-    .attr('x', function(d) {
-      return xScale(d.index, d.temp) - textPadding.dx
-    })
-    .attr('y', function(d) {
-      return yScale(d.index, d.temp) - textPadding.dy
-    })
+    .attr('x', d => xScale(d.index, d.temp) - textPadding.dx)
+    .attr('y', d => yScale(d.index, d.temp) - textPadding.dy)
     .attr('width', 2 * textPadding.dx)
     .attr('height', 2 * textPadding.dy)
     .style('fill', '#fff')
@@ -198,23 +160,15 @@ d3.json(api, function(err, json) {
   origin.selectAll('text.temp')
     .data(circleAxis)
     .enter().append('text')
-    .attr('x', function(d) {
-      return xScale(d.index, d.temp)
-    })
-    .attr('y', function(d) {
-      return yScale(d.index, d.temp)
-    })
-    .text(function(d) {
-      return d.temp + '°C'
-    })
+    .attr('x', d => xScale(d.index, d.temp))
+    .attr('y', d => yScale(d.index, d.temp))
+    .text(d => d.temp + '°C')
     .attr('class', 'temp')
     .style('font-size', 0.013 * height)
   //temperature and precipitation
 
   //this year's temperature
-  var thisYear = json.DATA.filter(function(d) {
-    return d.min
-  });
+  const thisYear = json.DATA.filter(d => d.min);
 
   drawRadial(origin, 'year', thisYear, 'min', 'max')
 
@@ -227,7 +181,7 @@ d3.json(api, function(err, json) {
     .style('font-size', 0.036 * height)
 
   // geolocation
-  var geolocation =
+  const geolocation =
     (json.STATION.LONGITUDE > 0 ? `${json.STATION.LONGITUDE.toFixed(4)}° E` : `${-json.STATION.LONGITUDE.toFixed(4)}° W`) + '  ' + (json.STATION.LATITUDE > 0 ? `${json.STATION.LATITUDE.toFixed(4)}° N` : `${-json.STATION.LATITUDE.toFixed(4)}° S`) + '  ' + `${json.STATION.ELEVATION}m`;
   svg.append('text').attr('x', width - margin)
     .attr('y', height - margin)
@@ -235,7 +189,7 @@ d3.json(api, function(err, json) {
     .attr('class', 'footnote')
     .style('font-size', 0.018 * height)
 
-  var code = json.STATION.CODE;
+  const code = json.STATION.CODE;
   svg.append('text').attr('x', width - margin)
     .attr('y', height - margin).attr('dy', -margin)
     .text(code)
@@ -246,8 +200,8 @@ d3.json(api, function(err, json) {
 });
 
 Mousetrap.bind(['command+s', 'ctrl+s'], function saveRadialAsSVG() {
-  var domNode = document.getElementsByTagName('svg')[0];
-  var fileName = d3.select(domNode).attr('title') + '.svg';
+  const domNode = document.getElementsByTagName('svg')[0];
+  const fileName = d3.select(domNode).attr('title') + '.svg';
   saveAsSVG(domNode, fileName);
   return false;
 });
@@ -257,9 +211,9 @@ Mousetrap.bind(['command+s', 'ctrl+s'], function saveRadialAsSVG() {
  * @param domNode the DOM node that should be save as svg
  * @param fileName the expected file name saved to local filesystem
  */
-var saveAsSVG = function(domNode, fileName) {
-  var serializer = new XMLSerializer();
-  var svgBlob = new Blob(
+var saveAsSVG = (domNode, fileName) => {
+  const serializer = new XMLSerializer();
+  const svgBlob = new Blob(
     [serializer.serializeToString(domNode)], { type: 'image/svg+xml' }
   );
   saveAs(svgBlob, fileName);
