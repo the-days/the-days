@@ -9,7 +9,7 @@ maxTemperature: \[Degree]C
 Precipitation: cm
 DatetimeValue: YYYYMMDD
 */
-const api = `Shanghai.json`,
+const api = `data/2015/IN/Guwahati.json`,
   margin = 20,
   width = Math.min(window.innerWidth, 1.3 * window.innerHeight) - margin,
   height = window.innerHeight - margin,
@@ -34,6 +34,50 @@ const xScale = (day, temp) =>
   Math.sin(angleScale(day) * Math.PI / 180) * rScale(parseInt(temp));
 const angleScale = d3.scaleLinear().range([0, 360]);
 
+const generateRadialGradient = selection => {
+  const gradientControl = [
+    {
+      offset: "0%",
+      stopColor: "rgb(0,24,35)"
+    },
+    {
+      offset: "15%",
+      stopColor: "rgb(0,59,93)"
+    },
+    {
+      offset: "35%",
+      stopColor: "rgb(30,107,154)"
+    },
+    {
+      offset: "60%",
+      stopColor: "rgb(81,183,231)"
+    },
+    {
+      offset: "70%",
+      stopColor: "rgb(147,222,168)"
+    },
+    {
+      offset: "80%",
+      stopColor: "rgb(253,212,95)"
+    },
+    {
+      offset: "93%",
+      stopColor: "rgb(230,108,86)"
+    },
+    {
+      offset: "100%",
+      stopColor: "rgb(105,37,19)"
+    }
+  ];
+  selection
+    .selectAll("stop")
+    .data(gradientControl)
+    .enter()
+    .append("stop")
+    .attr("offset", d => d.offset)
+    .attr("stop-color", d => d.stopColor);
+};
+
 const drawRadial = (chart, cl, data, low, high) => {
   /* define gradients */
   const gradient = origin
@@ -44,38 +88,7 @@ const drawRadial = (chart, cl, data, low, high) => {
     .attr("cy", 0)
     .attr("r", "33%")
     .attr("id", `heatGradient`);
-  gradient
-    .append("stop")
-    .attr("offset", "0%")
-    .attr("stop-color", "rgb(0,24,35)");
-  gradient
-    .append("stop")
-    .attr("offset", "15%")
-    .attr("stop-color", "rgb(0,59,93)");
-  gradient
-    .append("stop")
-    .attr("offset", "35%")
-    .attr("stop-color", "rgb(30,107,154)");
-  gradient
-    .append("stop")
-    .attr("offset", "60%")
-    .attr("stop-color", "rgb(81,183,231)");
-  gradient
-    .append("stop")
-    .attr("offset", "70%")
-    .attr("stop-color", "rgb(147,222,168)");
-  gradient
-    .append("stop")
-    .attr("offset", "80%")
-    .attr("stop-color", "rgb(253,212,95)");
-  gradient
-    .append("stop")
-    .attr("offset", "93%")
-    .attr("stop-color", "rgb(230,108,86)");
-  gradient
-    .append("stop")
-    .attr("offset", "100%")
-    .attr("stop-color", "rgb(105, 37, 19)");
+  gradient.call(generateRadialGradient);
   /* draw temperature and precipitation */
   const maxPRCP = d3.max(data, d => parseInt(d.PRCP));
 
@@ -212,10 +225,13 @@ d3.json(api, (err, json) => {
     dx: 2 * window.innerWidth / 100,
     dy: 1.4 * window.innerHeight / 100
   };
-  origin
+
+  const temperatureLabel = origin
     .selectAll("text.temp")
     .data(circleAxis)
-    .enter()
+    .enter();
+
+  temperatureLabel
     .append("rect")
     .attr("x", d => xScale(d.index, d.temp) - textPadding.dx)
     .attr("y", d => yScale(d.index, d.temp) - textPadding.dy)
@@ -223,16 +239,14 @@ d3.json(api, (err, json) => {
     .attr("height", 2 * textPadding.dy)
     .style("fill", "#fff");
 
-  origin
-    .selectAll("text.temp")
-    .data(circleAxis)
-    .enter()
+  temperatureLabel
     .append("text")
     .attr("x", d => xScale(d.index, d.temp))
     .attr("y", d => yScale(d.index, d.temp))
     .text(d => d.temp + "°C")
     .attr("class", "temp")
     .style("font-size", 0.013 * height);
+
   //temperature and precipitation
 
   //this year's temperature
