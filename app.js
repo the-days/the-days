@@ -102,11 +102,12 @@ d3.json(api, function(err, json) {
   });
   var min = d3.min(json.DATA, d => parseInt(d.min)),
     max = d3.max(json.DATA, d => parseInt(d.max));
+
   var months = [];
   //find index for months based on data
   json.DATA.forEach((d, i) => {
     var day = moment(d.DATE, 'YYYYMMDD');
-    if (day.date() === 1) {
+    if (i === 0 || !moment(json.DATA[i - 1].DATE).isSame(day, "month")) {
       months.push({
         month: day.format('MMM').toUpperCase(),
         index: i
