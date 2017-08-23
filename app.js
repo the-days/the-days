@@ -9,25 +9,25 @@ maxTemperature: \[Degree]C
 Precipitation: cm
 DatetimeValue: YYYYMMDD
 */
-const api = `data/2015/IN/Guwahati.json`,
+const api = `Shanghai.json`,
   margin = 20,
-  width = Math.min(window.innerWidth, 1.3 * window.innerHeight) - margin,
-  height = window.innerHeight - margin,
-  lowest = -40,
-  highest = 60,
-  maxPRCP = 200,
-  maxPRCPRadius = width / 16,
-  svg = d3.select("svg").attr("width", width).attr("height", height);
-// remove body unresolved when width and height is setup
+  WIDTH = Math.min(window.innerWidth, 1.3 * window.innerHeight) - margin,
+  HEIGHT = window.innerHeight - margin,
+  LOWEST = -40,
+  HIGHEST = 60,
+  maxPRCPRadius = WIDTH / 16;
+const svg = d3.select("svg").attr("width", WIDTH).attr("height", HEIGHT);
+// remove body unresolved when WIDTH and HEIGHT is setup
 d3.select("#app").attr("unresolved", null);
 
-const origin = svg
+const viewport = svg
   .append("g")
-  .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+  .attr("class", "viewport")
+  .attr("transform", "translate(" + WIDTH / 2 + "," + HEIGHT / 2 + ")");
 const rScale = d3
   .scaleLinear()
-  .domain([lowest, highest])
-  .range([0, height / 2 - margin]);
+  .domain([LOWEST, HIGHEST])
+  .range([0, HEIGHT / 2 - margin]);
 const yScale = (day, temp) =>
   -Math.cos(angleScale(day) * Math.PI / 180) * rScale(parseInt(temp));
 const xScale = (day, temp) =>
@@ -80,7 +80,7 @@ const generateRadialGradient = selection => {
 
 const drawRadial = (chart, cl, data, low, high) => {
   /* define gradients */
-  const gradient = origin
+  const gradient = viewport
     .append("defs")
     .append("radialGradient")
     .attr("gradientUnits", "userSpaceOnUse")
@@ -126,6 +126,34 @@ const drawRadial = (chart, cl, data, low, high) => {
       .style("stroke", `url(#heatGradient)`);
   });
 };
+
+const renderAxis = axis => {
+  axis
+    .append("line")
+    .attr("x2", d => xScale(d.index, 41))
+    .attr("y2", d => yScale(d.index, 41))
+    .attr("class", "axis-line");
+
+  axis
+    .append("line")
+    .attr("x1", d => xScale(d.index, HIGHEST - 17))
+    .attr("y1", d => yScale(d.index, HIGHEST - 17))
+    .attr("x2", d => xScale(d.index, HIGHEST - 10.2))
+    .attr("y2", d => yScale(d.index, HIGHEST - 10.2))
+    .attr("class", "tick");
+
+  axis
+    .append("text")
+    .attr("x", d => xScale(0, HIGHEST - 12))
+    .attr("y", d => yScale(0, HIGHEST - 12))
+    .attr("dx", ".25em")
+    .attr("transform", d => {
+      return `rotate(${angleScale(d.index)})`;
+    })
+    .text(d => d.month)
+    .attr("class", "months")
+    .style("font-size", 0.013 * HEIGHT);
+};
 const mathematica_preprocess = json => {
   const data = json.DATA;
   return data[3].map((v, k) => ({
@@ -143,8 +171,6 @@ d3.json(api, (err, json) => {
     arr[k].max = arr[k].TMAX;
     arr[k].index = k;
   });
-  const min = d3.min(json.DATA, d => parseInt(d.min)),
-    max = d3.max(json.DATA, d => parseInt(d.max));
 
   const months = [];
   //find index for months based on data
@@ -159,54 +185,23 @@ d3.json(api, (err, json) => {
   });
 
   //circle axis
-  origin
+  viewport
+    .append("g")
+    .attr("class", "circle-axis-container")
     .selectAll("circle.axis")
-    .data(d3.range(lowest + 20, highest - 10, 10))
+    .data(d3.range(LOWEST + 20, HIGHEST - 10, 10))
     .enter()
     .append("circle")
     .attr("r", d => rScale(d))
     .attr("class", "axis record");
 
   //axis lines
-  const axis = origin.append("g");
+  const axisContainer = viewport.append("g").attr("class", "axis-container");
 
-  axis
-    .selectAll("line.axis")
-    .data(months)
-    .enter()
-    .append("line")
-    .attr("x2", d => xScale(d.index, 41))
-    .attr("y2", d => yScale(d.index, 41))
-    .attr("class", "axis");
-  axis
-    .selectAll("line.tick")
-    .data(months)
-    .enter()
-    .append("line")
-    .attr("x1", d => xScale(d.index, highest - 17))
-    .attr("y1", d => yScale(d.index, highest - 17))
-    .attr("x2", d => xScale(d.index, highest - 10.2))
-    .attr("y2", d => yScale(d.index, highest - 10.2))
-    .attr("class", "tick");
-
-  const monthLabels = months;
-  axis
-    .selectAll("text.months")
-    .data(monthLabels)
-    .enter()
-    .append("text")
-    .attr("x", d => xScale(0, highest - 12))
-    .attr("y", d => yScale(0, highest - 12))
-    .attr("dx", ".25em")
-    .attr("transform", d => {
-      return `rotate(${angleScale(d.index)})`;
-    })
-    .text(d => d.month)
-    .attr("class", "months")
-    .style("font-size", 0.013 * height);
+  axisContainer.selectAll(".axis").data(months).enter().call(renderAxis);
 
   //temperature axis labels
-  const circleAxis = d3.range(lowest + 20, highest, 20).reduce(
+  const circleAxis = d3.range(LOWEST + 20, HIGHEST, 20).reduce(
     (p, d) =>
       p.concat([
         {
@@ -226,8 +221,10 @@ d3.json(api, (err, json) => {
     dy: 1.4 * window.innerHeight / 100
   };
 
-  const temperatureLabel = origin
-    .selectAll("text.temp")
+  const temperatureLabel = viewport
+    .append("g")
+    .attr("class", "temperature-label-container")
+    .selectAll("text.temperature")
     .data(circleAxis)
     .enter();
 
@@ -235,8 +232,8 @@ d3.json(api, (err, json) => {
     .append("rect")
     .attr("x", d => xScale(d.index, d.temp) - textPadding.dx)
     .attr("y", d => yScale(d.index, d.temp) - textPadding.dy)
-    .attr("width", 2 * textPadding.dx)
-    .attr("height", 2 * textPadding.dy)
+    .attr("WIDTH", 2 * textPadding.dx)
+    .attr("HEIGHT", 2 * textPadding.dy)
     .style("fill", "#fff");
 
   temperatureLabel
@@ -244,24 +241,24 @@ d3.json(api, (err, json) => {
     .attr("x", d => xScale(d.index, d.temp))
     .attr("y", d => yScale(d.index, d.temp))
     .text(d => d.temp + "°C")
-    .attr("class", "temp")
-    .style("font-size", 0.013 * height);
+    .attr("class", "temperature")
+    .style("font-size", 0.013 * HEIGHT);
 
   //temperature and precipitation
 
   //this year's temperature
   const thisYear = json.DATA.filter(d => d.min);
 
-  drawRadial(origin, "year", thisYear, "min", "max");
+  drawRadial(viewport, "year", thisYear, "min", "max");
 
   //title
   svg
     .append("text")
-    .attr("x", width / 2)
-    .attr("y", height / 2)
+    .attr("x", WIDTH / 2)
+    .attr("y", HEIGHT / 2)
     .text(json.STATION.NAME)
     .attr("class", "title")
-    .style("font-size", 0.036 * height);
+    .style("font-size", 0.036 * HEIGHT);
 
   // geolocation
   const geolocation =
@@ -276,21 +273,21 @@ d3.json(api, (err, json) => {
     `${json.STATION.ELEVATION}m`;
   svg
     .append("text")
-    .attr("x", width - margin)
-    .attr("y", height - margin)
+    .attr("x", WIDTH - margin)
+    .attr("y", HEIGHT - margin)
     .text(geolocation)
     .attr("class", "footnote")
-    .style("font-size", 0.018 * height);
+    .style("font-size", 0.018 * HEIGHT);
 
   const code = json.STATION.CODE;
   svg
     .append("text")
-    .attr("x", width - margin)
-    .attr("y", height - margin)
+    .attr("x", WIDTH - margin)
+    .attr("y", HEIGHT - margin)
     .attr("dy", -margin)
     .text(code)
     .attr("class", "footnote")
-    .style("font-size", 0.018 * height);
+    .style("font-size", 0.018 * HEIGHT);
 
   svg.attr("title", json.STATION.NAME);
 });
