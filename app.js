@@ -26,7 +26,7 @@ d3.select("#app").attr("unresolved", null);
 const viewport = svg
   .append("g")
   .attr("class", "viewport")
-  .attr("transform", "translate(" + WIDTH / 2 + "," + HEIGHT / 2 + ")");
+  .attr("transform", "translate(" + [WIDTH / 2, HEIGHT / 2] + ")");
 const rScale = d3
   .scaleLinear()
   .domain([LOWEST, HIGHEST])
@@ -99,8 +99,8 @@ const renderAxis = axis => {
 
   axis
     .append("text")
-    .attr("x", d => xScale(0, HIGHEST - 12))
-    .attr("y", d => yScale(0, HIGHEST - 12))
+    .attr("x", xScale(0, HIGHEST - 12))
+    .attr("y", yScale(0, HIGHEST - 12))
     .attr("dx", ".25em")
     .attr("transform", d => {
       return `rotate(${angleScale(d.index)})`;
@@ -120,7 +120,6 @@ const mathematicaPreprocess = json => {
 };
 
 const d3Preprocess = json => {
-  console.log(json);
   json.DATA = mathematicaPreprocess(json);
   const months = [];
   //find index for months based on data
@@ -274,29 +273,27 @@ d3.json(api, (err, json) => {
     .attr("y2", (d, i) => yScale(i, d.tmax));
 
   //title
-  svg
+  viewport
     .append("text")
-    .attr("x", WIDTH / 2)
-    .attr("y", HEIGHT / 2)
+    .attr("x", 0)
+    .attr("y", 0)
     .text(json.STATION.NAME)
     .attr("class", "title")
     .style("font-size", 0.036 * HEIGHT);
 
-  // geolocation
-  svg
+  // geolocation and station name
+  const footnotes = [json.STATION.CODE, json.STATION.geolocationDisplay];
+  viewport
+    .append("g")
+    .attr("class", "legend-container")
+    .selectAll(".footnote")
+    .data(footnotes)
+    .enter()
     .append("text")
-    .attr("x", WIDTH - margin)
-    .attr("y", HEIGHT - margin)
-    .text(json.STATION.geolocationDisplay)
-    .attr("class", "footnote")
-    .style("font-size", 0.018 * HEIGHT);
-
-  svg
-    .append("text")
-    .attr("x", WIDTH - margin)
-    .attr("y", HEIGHT - margin)
-    .attr("dy", -margin)
-    .text(json.STATION.CODE)
+    .attr("x", WIDTH / 2 - margin)
+    .attr("y", HEIGHT / 2 - margin)
+    .text(d => d)
+    .attr("dy", (_, i) => -(footnotes.length - 1 - i) * margin)
     .attr("class", "footnote")
     .style("font-size", 0.018 * HEIGHT);
 
