@@ -16,6 +16,9 @@ const api = `Shanghai.json`,
   LOWEST = -40,
   HIGHEST = 60,
   maxPRCPRadius = WIDTH / 16;
+const ANIMATION = {
+  durationPerDay: 7.5 // unit: ms
+};
 const svg = d3.select("svg").attr("width", WIDTH).attr("height", HEIGHT);
 // remove body unresolved when WIDTH and HEIGHT is setup
 d3.select("#app").attr("unresolved", null);
@@ -149,13 +152,13 @@ const d3Preprocess = json => {
 
 d3.json(api, (err, json) => {
   json = d3Preprocess(json);
-  console.log(json);
-  angleScale.domain([0, json.DATA.length - 1]);
+  const days = json.DATA.length;
+  angleScale.domain([0, days - 1]);
   const maxPRCP = d3.max(json.DATA, d => d.prcp);
   prcpScale.domain([0, maxPRCP]);
 
   // define gradients
-  viewport
+  svg
     .append("defs")
     .append("radialGradient")
     .attr("gradientUnits", "userSpaceOnUse")
@@ -241,6 +244,12 @@ d3.json(api, (err, json) => {
     .attr("class", "precipitation")
     .attr("cx", (d, i) => (xScale(i, d.tmin) + xScale(i, d.tmax)) / 2)
     .attr("cy", (d, i) => (yScale(i, d.tmin) + yScale(i, d.tmax)) / 2)
+    .style("opacity", 0)
+    .transition()
+    .duration(250)
+    .ease(d3.easeBackOut)
+    .delay((d, i) => i * ANIMATION.durationPerDay)
+    .style("opacity", 1)
     .attr("r", d => prcpScale(d.prcp));
 
   viewport
@@ -250,12 +259,19 @@ d3.json(api, (err, json) => {
     .data(json.DATA)
     .enter()
     .append("line")
+    .attr("x1", (d, i) => (xScale(i, d.tmin) + xScale(i, d.tmax)) / 2)
+    .attr("x2", (d, i) => (xScale(i, d.tmin) + xScale(i, d.tmax)) / 2)
+    .attr("y1", (d, i) => (yScale(i, d.tmin) + yScale(i, d.tmax)) / 2)
+    .attr("y2", (d, i) => (yScale(i, d.tmin) + yScale(i, d.tmax)) / 2)
+    .attr("class", "temperature")
+    .style("stroke", "url(#heatGradient)")
+    .transition()
+    .duration(80)
+    .delay((d, i) => i * ANIMATION.durationPerDay)
     .attr("x1", (d, i) => xScale(i, d.tmin))
     .attr("x2", (d, i) => xScale(i, d.tmax))
     .attr("y1", (d, i) => yScale(i, d.tmin))
-    .attr("y2", (d, i) => yScale(i, d.tmax))
-    .attr("class", "temperature")
-    .style("stroke", "url(#heatGradient)");
+    .attr("y2", (d, i) => yScale(i, d.tmax));
 
   //title
   svg
