@@ -23,15 +23,22 @@
   <meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png">
   <meta name="theme-color" content="#ffffff">
   <title>The days</title>
+  <style>
+    #app {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  </style>
 </head>
 
 <body>
-  <div id="app" unresolved>
+  <div id="app">
     <svg xmlns="http://www.w3.org/2000/svg">
       <style>
       svg {
          background-color: white;
-         font-family: system-ui, 'Avenir Next', 'Noto Sans', 'Segoe UI';
+         font-family: system-ui, 'Avenir Next', 'Noto Sans', 'Segoe UI', sans-serif;
       }
 
       .axis-line {
@@ -91,5 +98,4 @@
   <script src="https://cdn.bootcss.com/FileSaver.js/2014-11-29/FileSaver.min.js"></script>
   <script src="app.js"></script>
 </body>
-
 </html>
