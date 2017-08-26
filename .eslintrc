@@ -1,0 +1,16 @@
+{
+  "env": {
+    "browser": true,
+    "es6": true
+  },
+  "extends": [
+    "prettier",
+    "eslint:recommended"
+  ],
+  "globals": {
+    "d3": true,
+    "moment": true,
+    "Mousetrap": true,
+    "saveAs": true
+  }
+}
