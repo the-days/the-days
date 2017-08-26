@@ -1,9 +1,12 @@
 body{
-   background-color: whitesmoke;
    height: 100%;
-   overflow-y: hidden;
 }
 [unresolved] {
   opacity: 0;
   transition: opacity 0.3s ease-out;
+}
+#app {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
