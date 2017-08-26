@@ -130,6 +130,18 @@ const d3Preprocess = json => {
       });
     }
   });
+  Object.assign(json.STATION, {
+    geolocationDisplay:
+      (json.STATION.LONGITUDE > 0
+        ? `${json.STATION.LONGITUDE.toFixed(4)}° E`
+        : `${-json.STATION.LONGITUDE.toFixed(4)}° W`) +
+      "  " +
+      (json.STATION.LATITUDE > 0
+        ? `${json.STATION.LATITUDE.toFixed(4)}° N`
+        : `${-json.STATION.LATITUDE.toFixed(4)}° S`) +
+      "  " +
+      `${json.STATION.ELEVATION}m`
+  });
   return Object.assign({}, json, {
     months
   });
@@ -255,31 +267,20 @@ d3.json(api, (err, json) => {
     .style("font-size", 0.036 * HEIGHT);
 
   // geolocation
-  const geolocation =
-    (json.STATION.LONGITUDE > 0
-      ? `${json.STATION.LONGITUDE.toFixed(4)}° E`
-      : `${-json.STATION.LONGITUDE.toFixed(4)}° W`) +
-    "  " +
-    (json.STATION.LATITUDE > 0
-      ? `${json.STATION.LATITUDE.toFixed(4)}° N`
-      : `${-json.STATION.LATITUDE.toFixed(4)}° S`) +
-    "  " +
-    `${json.STATION.ELEVATION}m`;
   svg
     .append("text")
     .attr("x", WIDTH - margin)
     .attr("y", HEIGHT - margin)
-    .text(geolocation)
+    .text(json.STATION.geolocationDisplay)
     .attr("class", "footnote")
     .style("font-size", 0.018 * HEIGHT);
 
-  const code = json.STATION.CODE;
   svg
     .append("text")
     .attr("x", WIDTH - margin)
     .attr("y", HEIGHT - margin)
     .attr("dy", -margin)
-    .text(code)
+    .text(json.STATION.CODE)
     .attr("class", "footnote")
     .style("font-size", 0.018 * HEIGHT);
 
