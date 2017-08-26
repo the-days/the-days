@@ -119,6 +119,26 @@ const mathematicaPreprocess = json => {
   }));
 };
 
+const formatLongitude = longitude => {
+  if (longitude === 0) {
+    return "0°";
+  } else if (longitude > 0) {
+    return `${longitude.toFixed(4)}° E`;
+  }
+  return `${-longitude.toFixed(4)}° W`;
+};
+
+const formatLatitude = latitude => {
+  if (latitude === 0) {
+    return "0°";
+  } else if (latitude > 0) {
+    return `${latitude.toFixed(4)}° N`;
+  }
+  return `${-latitude.toFixed(4)}° S`;
+};
+
+const formatElevation = elevation => `${elevation}m`;
+
 const d3Preprocess = json => {
   json.DATA = mathematicaPreprocess(json);
   const months = [];
@@ -133,16 +153,11 @@ const d3Preprocess = json => {
     }
   });
   Object.assign(json.STATION, {
-    geolocationDisplay:
-      (json.STATION.LONGITUDE > 0
-        ? `${json.STATION.LONGITUDE.toFixed(4)}° E`
-        : `${-json.STATION.LONGITUDE.toFixed(4)}° W`) +
-      "  " +
-      (json.STATION.LATITUDE > 0
-        ? `${json.STATION.LATITUDE.toFixed(4)}° N`
-        : `${-json.STATION.LATITUDE.toFixed(4)}° S`) +
-      "  " +
-      `${json.STATION.ELEVATION}m`
+    geolocationDisplay: [
+      formatLatitude(json.STATION.LATITUDE),
+      formatLongitude(json.STATION.LONGITUDE),
+      formatElevation(json.STATION.ELEVATION)
+    ].join(" ")
   });
   return Object.assign({}, json, {
     months
