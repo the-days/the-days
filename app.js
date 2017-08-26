@@ -164,7 +164,7 @@ d3.json(api, (err, json) => {
     .attr("gradientUnits", "userSpaceOnUse")
     .attr("cx", 0)
     .attr("cy", 0)
-    .attr("r", "33%")
+    .attr("r", rScale(HIGHEST - 20))
     .attr("id", "heatGradient")
     .call(generateRadialGradient);
 
