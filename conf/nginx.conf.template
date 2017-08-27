@@ -1,0 +1,36 @@
+daemon            off;
+
+events {
+    worker_connections  1024;
+}
+
+http {
+    charset 	  utf-8;
+
+    gzip          on;
+    gzip_buffers  4 32k;
+    gzip_types    text/plain application/x-javascript text/xml text/css application/json;
+    gzip_vary     on;
+
+    #log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+    #                  '$status $body_bytes_sent "$http_referer" '
+    #                  '"$http_user_agent" "$http_x_forwarded_for"';
+
+    #access_log  logs/access.log  main;
+
+    sendfile        on;
+
+    #keepalive_timeout  0;
+    keepalive_timeout  65;
+
+    server {
+        listen       2488;
+        server_name  localhost;
+        index        index.html;
+        root         __ROOT__;
+
+        location /data {
+            gzip_static always;
+        }
+    }
+}
