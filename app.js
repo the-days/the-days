@@ -167,14 +167,18 @@ const gsodPreprocess = (raw, cityData) => {
     DATA: lines.filter(line => line !== "").map(line => {
       const date = line.substring(14, 22);
       const tmin = skipNull(toCelcius)(
-        processNA(9999.9)(parseFloat(line.substring(110, 115).replace("*", "")))
+        skipNull(parseFloat)(
+          processNA("9999.9")(line.substring(110, 115).replace("*", ""))
+        )
       );
       const tmax = skipNull(toCelcius)(
-        processNA(9999.9)(parseFloat(line.substring(102, 107).replace("*", "")))
+        skipNull(parseFloat)(
+          processNA("9999.9")(line.substring(102, 107).replace("*", ""))
+        )
       );
       const prcp = skipNull(toMM)(
-        processNA(99.99)(
-          parseFloat(line.substring(118, 122).replace(/A-Z/, ""))
+        skipNull(parseFloat)(
+          processNA("99.9")(line.substring(118, 122).replace(/A-Z/, ""))
         )
       );
       return { date, tmin, tmax, prcp };
@@ -183,7 +187,8 @@ const gsodPreprocess = (raw, cityData) => {
       LATITUDE: cityData.latitude,
       LONGITUDE: cityData.longitude,
       ELEVATION: cityData.elevation,
-      NAME: cityData.name
+      NAME: cityData.name,
+      CODE: cityData.name
     }
   };
 };
@@ -201,6 +206,7 @@ fetch(`https://days.ml/city/${city}`)
   })
   .then(r => r.text())
   .then(raw => {
+    // console.log(gsodPreprocess(raw, cityData));
     const json = d3Preprocess(gsodPreprocess(raw, cityData));
     const days = json.DATA.length;
     angleScale.domain([0, days - 1]);
