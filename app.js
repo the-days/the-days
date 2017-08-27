@@ -1,16 +1,6 @@
-/**
-json data format
-{"STATION":{"LONGITUDE":116.587,"LATITUDE":40.074,"ELEVATION":55,"NAME":"Beijing","CODE":"ZBAA"},
-"DATA": [[minTemperature], [maxTemperature], [Precipitation], [DatetimeValue]]}
-
-Quantity Metric:
-minTemperature: \[Degree]C
-maxTemperature: \[Degree]C
-Precipitation: cm
-DatetimeValue: YYYYMMDD
-*/
-const api = `Shanghai.json`,
-  margin = 20,
+const city = `${location.hash.substring(1)}`;
+const year = 2016;
+const margin = 20,
   WIDTH = Math.min(window.innerWidth, 1.3 * window.innerHeight) - margin,
   HEIGHT = window.innerHeight - margin,
   LOWEST = -40,
@@ -109,15 +99,6 @@ const renderAxis = axis => {
     .attr("class", "months")
     .style("font-size", 0.013 * HEIGHT);
 };
-const mathematicaPreprocess = json => {
-  const data = json.DATA;
-  return data[3].map((v, k) => ({
-    date: v,
-    tmin: +data[0][k],
-    tmax: +data[1][k],
-    prcp: +data[2][k] * 10
-  }));
-};
 
 const formatLongitude = longitude => {
   if (longitude === 0) {
@@ -140,7 +121,6 @@ const formatLatitude = latitude => {
 const formatElevation = elevation => `${elevation}m`;
 
 const d3Preprocess = json => {
-  json.DATA = mathematicaPreprocess(json);
   const months = [];
   //find index for months based on data
   json.DATA.forEach((d, i) => {
@@ -164,156 +144,212 @@ const d3Preprocess = json => {
   });
 };
 
-d3.json(api, (err, json) => {
-  json = d3Preprocess(json);
-  const days = json.DATA.length;
-  angleScale.domain([0, days - 1]);
-  const maxPRCP = d3.max(json.DATA, d => d.prcp);
-  prcpScale.domain([0, maxPRCP]);
+const processNA = NA => data => {
+  if (data === NA) {
+    return null;
+  }
+  return data;
+};
 
-  // define gradients
-  svg
-    .append("defs")
-    .append("radialGradient")
-    .attr("gradientUnits", "userSpaceOnUse")
-    .attr("cx", 0)
-    .attr("cy", 0)
-    .attr("r", rScale(HIGHEST - 20))
-    .attr("id", "heatGradient")
-    .call(generateRadialGradient);
+const skipNull = fn => data => {
+  if (data === null) {
+    return null;
+  }
+  return fn(data);
+};
+const toCelcius = fr => +((fr - 32) * 5 / 9).toFixed(1);
+const toMM = inch => +(inch * 25.4).toFixed(1);
 
-  //circle axis
-  viewport
-    .append("g")
-    .attr("class", "circle-axis-container")
-    .selectAll("circle.axis")
-    .data(d3.range(LOWEST + 20, HIGHEST - 10, 10))
-    .enter()
-    .append("circle")
-    .attr("r", d => rScale(d))
-    .attr("class", "axis record");
-
-  //axis lines
-  viewport
-    .append("g")
-    .attr("class", "axis-container")
-    .selectAll(".axis")
-    .data(json.months)
-    .enter()
-    .call(renderAxis);
-
-  //temperature axis labels
-  const circleAxis = d3.range(LOWEST + 20, HIGHEST, 20).reduce(
-    (p, d) =>
-      p.concat([
-        {
-          temp: d,
-          index: 180
-        },
-        {
-          temp: d,
-          index: 0
-        }
-      ]),
-    []
-  );
-
-  const textPadding = {
-    dx: 2 * window.innerWidth / 100,
-    dy: 1.4 * window.innerHeight / 100
+const gsodPreprocess = (raw, cityData) => {
+  const lines = raw.split("\n");
+  lines.shift();
+  return {
+    DATA: lines.filter(line => line !== "").map(line => {
+      const date = line.substring(14, 22);
+      const tmin = skipNull(toCelcius)(
+        processNA(9999.9)(parseFloat(line.substring(110, 115).replace("*", "")))
+      );
+      const tmax = skipNull(toCelcius)(
+        processNA(9999.9)(parseFloat(line.substring(102, 107).replace("*", "")))
+      );
+      const prcp = skipNull(toMM)(
+        processNA(99.99)(
+          parseFloat(line.substring(118, 122).replace(/A-Z/, ""))
+        )
+      );
+      return { date, tmin, tmax, prcp };
+    }),
+    STATION: {
+      LATITUDE: cityData.latitude,
+      LONGITUDE: cityData.longitude,
+      ELEVATION: cityData.elevation,
+      NAME: cityData.name
+    }
   };
+};
+let cityData = { latitude: 0.0, longitude: 0.0, elevation: 0.0, name: "" };
 
-  const temperatureLabel = viewport
-    .append("g")
-    .attr("class", "temperature-label-container")
-    .selectAll("text.temperature")
-    .data(circleAxis)
-    .enter();
+fetch(`https://days.ml/city/${city}`)
+  .then(response => response.json())
+  .then(cityDatum => {
+    if (cityDatum.length === 0) {
+      throw new Error("No corresponding city");
+    }
+    cityData = cityDatum.shift();
+    const station = cityData.stations.shift();
+    return fetch(`https://days.ml/data/${station.id}-${year}.op`);
+  })
+  .then(r => r.text())
+  .then(raw => {
+    const json = d3Preprocess(gsodPreprocess(raw, cityData));
+    const days = json.DATA.length;
+    angleScale.domain([0, days - 1]);
+    const maxPRCP = d3.max(json.DATA, d => d.prcp);
+    prcpScale.domain([0, maxPRCP]);
 
-  temperatureLabel
-    .append("rect")
-    .attr("x", d => xScale(d.index, d.temp) - textPadding.dx)
-    .attr("y", d => yScale(d.index, d.temp) - textPadding.dy)
-    .attr("width", 2 * textPadding.dx)
-    .attr("height", 2 * textPadding.dy)
-    .style("fill", "#fff");
+    // define gradients
+    svg
+      .append("defs")
+      .append("radialGradient")
+      .attr("gradientUnits", "userSpaceOnUse")
+      .attr("cx", 0)
+      .attr("cy", 0)
+      .attr("r", rScale(HIGHEST - 20))
+      .attr("id", "heatGradient")
+      .call(generateRadialGradient);
 
-  temperatureLabel
-    .append("text")
-    .attr("x", d => xScale(d.index, d.temp))
-    .attr("y", d => yScale(d.index, d.temp))
-    .text(d => d.temp + "°C")
-    .attr("class", "temperature-label")
-    .style("font-size", 0.013 * HEIGHT);
+    //circle axis
+    viewport
+      .append("g")
+      .attr("class", "circle-axis-container")
+      .selectAll("circle.axis")
+      .data(d3.range(LOWEST + 20, HIGHEST - 10, 10))
+      .enter()
+      .append("circle")
+      .attr("r", d => rScale(d))
+      .attr("class", "axis record");
 
-  //temperature and precipitation
+    //axis lines
+    viewport
+      .append("g")
+      .attr("class", "axis-container")
+      .selectAll(".axis")
+      .data(json.months)
+      .enter()
+      .call(renderAxis);
 
-  viewport
-    .append("g")
-    .attr("class", "precipitation-container")
-    .selectAll(".precipitation")
-    .data(json.DATA)
-    .enter()
-    .append("circle")
-    .attr("class", "precipitation")
-    .attr("cx", (d, i) => xScale(i, (d.tmin + d.tmax) / 2))
-    .attr("cy", (d, i) => yScale(i, (d.tmin + d.tmax) / 2))
-    .style("opacity", 0)
-    .transition()
-    .duration(300)
-    .ease(d3.easeBackOut)
-    .delay((d, i) => i * ANIMATION.durationPerDay)
-    .style("opacity", 1)
-    .attr("r", d => prcpScale(d.prcp));
+    //temperature axis labels
+    const circleAxis = d3.range(LOWEST + 20, HIGHEST, 20).reduce(
+      (p, d) =>
+        p.concat([
+          {
+            temp: d,
+            index: 180
+          },
+          {
+            temp: d,
+            index: 0
+          }
+        ]),
+      []
+    );
 
-  viewport
-    .append("g")
-    .attr("class", "temperature-container")
-    .selectAll(".temperature")
-    .data(json.DATA)
-    .enter()
-    .append("line")
-    .attr("x1", (d, i) => xScale(i, (d.tmin + d.tmax) / 2))
-    .attr("x2", (d, i) => xScale(i, (d.tmin + d.tmax) / 2))
-    .attr("y1", (d, i) => yScale(i, (d.tmin + d.tmax) / 2))
-    .attr("y2", (d, i) => yScale(i, (d.tmin + d.tmax) / 2))
-    .attr("class", "temperature")
-    .style("stroke", "url(#heatGradient)")
-    .transition()
-    .duration(300)
-    .delay((d, i) => i * ANIMATION.durationPerDay)
-    .attr("x1", (d, i) => xScale(i, d.tmin))
-    .attr("x2", (d, i) => xScale(i, d.tmax))
-    .attr("y1", (d, i) => yScale(i, d.tmin))
-    .attr("y2", (d, i) => yScale(i, d.tmax));
+    const textPadding = {
+      dx: 2 * window.innerWidth / 100,
+      dy: 1.4 * window.innerHeight / 100
+    };
 
-  //title
-  viewport
-    .append("text")
-    .attr("x", 0)
-    .attr("y", 0)
-    .text(json.STATION.NAME)
-    .attr("class", "title")
-    .style("font-size", 0.036 * HEIGHT);
+    const temperatureLabel = viewport
+      .append("g")
+      .attr("class", "temperature-label-container")
+      .selectAll("text.temperature")
+      .data(circleAxis)
+      .enter();
 
-  // geolocation and station name
-  const footnotes = [json.STATION.CODE, json.STATION.geolocationDisplay];
-  viewport
-    .append("g")
-    .attr("class", "legend-container")
-    .selectAll(".footnote")
-    .data(footnotes)
-    .enter()
-    .append("text")
-    .attr("x", WIDTH / 2 - margin)
-    .attr("y", HEIGHT / 2 - margin)
-    .text(d => d)
-    .attr("dy", (_, i) => -(footnotes.length - 1 - i) * margin)
-    .attr("class", "footnote")
-    .style("font-size", 0.018 * HEIGHT);
+    temperatureLabel
+      .append("rect")
+      .attr("x", d => xScale(d.index, d.temp) - textPadding.dx)
+      .attr("y", d => yScale(d.index, d.temp) - textPadding.dy)
+      .attr("width", 2 * textPadding.dx)
+      .attr("height", 2 * textPadding.dy)
+      .style("fill", "#fff");
 
-  svg.attr("title", json.STATION.NAME);
-});
+    temperatureLabel
+      .append("text")
+      .attr("x", d => xScale(d.index, d.temp))
+      .attr("y", d => yScale(d.index, d.temp))
+      .text(d => d.temp + "°C")
+      .attr("class", "temperature-label")
+      .style("font-size", 0.013 * HEIGHT);
+
+    //temperature and precipitation
+
+    viewport
+      .append("g")
+      .attr("class", "precipitation-container")
+      .selectAll(".precipitation")
+      .data(json.DATA)
+      .enter()
+      .append("circle")
+      .attr("class", "precipitation")
+      .attr("cx", (d, i) => xScale(i, (d.tmin + d.tmax) / 2))
+      .attr("cy", (d, i) => yScale(i, (d.tmin + d.tmax) / 2))
+      .style("opacity", 0)
+      .transition()
+      .duration(300)
+      .ease(d3.easeBackOut)
+      .delay((d, i) => i * ANIMATION.durationPerDay)
+      .style("opacity", 1)
+      .attr("r", d => prcpScale(d.prcp));
+
+    viewport
+      .append("g")
+      .attr("class", "temperature-container")
+      .selectAll(".temperature")
+      .data(json.DATA)
+      .enter()
+      .append("line")
+      .attr("x1", (d, i) => xScale(i, (d.tmin + d.tmax) / 2))
+      .attr("x2", (d, i) => xScale(i, (d.tmin + d.tmax) / 2))
+      .attr("y1", (d, i) => yScale(i, (d.tmin + d.tmax) / 2))
+      .attr("y2", (d, i) => yScale(i, (d.tmin + d.tmax) / 2))
+      .attr("class", "temperature")
+      .style("stroke", "url(#heatGradient)")
+      .transition()
+      .duration(300)
+      .delay((d, i) => i * ANIMATION.durationPerDay)
+      .attr("x1", (d, i) => xScale(i, d.tmin))
+      .attr("x2", (d, i) => xScale(i, d.tmax))
+      .attr("y1", (d, i) => yScale(i, d.tmin))
+      .attr("y2", (d, i) => yScale(i, d.tmax));
+
+    //title
+    viewport
+      .append("text")
+      .attr("x", 0)
+      .attr("y", 0)
+      .text(json.STATION.NAME)
+      .attr("class", "title")
+      .style("font-size", 0.036 * HEIGHT);
+
+    // geolocation and station name
+    const footnotes = [json.STATION.CODE, json.STATION.geolocationDisplay];
+    viewport
+      .append("g")
+      .attr("class", "legend-container")
+      .selectAll(".footnote")
+      .data(footnotes)
+      .enter()
+      .append("text")
+      .attr("x", WIDTH / 2 - margin)
+      .attr("y", HEIGHT / 2 - margin)
+      .text(d => d)
+      .attr("dy", (_, i) => -(footnotes.length - 1 - i) * margin)
+      .attr("class", "footnote")
+      .style("font-size", 0.018 * HEIGHT);
+
+    svg.attr("title", json.STATION.NAME);
+  });
 
 Mousetrap.bind(["command+s", "ctrl+s"], function saveRadialAsSVG() {
   const domNode = document.getElementsByTagName("svg")[0];
