@@ -168,17 +168,17 @@ const gsodPreprocess = (raw, cityData) => {
       const date = line.substring(14, 22);
       const tmin = skipNull(toCelcius)(
         skipNull(parseFloat)(
-          processNA("9999.9")(line.substring(110, 115).replace("*", ""))
+          processNA("9999.9")(line.substring(110, 116).replace("*", ""))
         )
       );
       const tmax = skipNull(toCelcius)(
         skipNull(parseFloat)(
-          processNA("9999.9")(line.substring(102, 107).replace("*", ""))
+          processNA("9999.9")(line.substring(102, 108).replace("*", ""))
         )
       );
       const prcp = skipNull(toMM)(
         skipNull(parseFloat)(
-          processNA("99.9")(line.substring(118, 122).replace(/A-Z/, ""))
+          processNA("99.99")(line.substring(118, 123).replace(/A-Z/, ""))
         )
       );
       return { date, tmin, tmax, prcp };
