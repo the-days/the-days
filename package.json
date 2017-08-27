@@ -4,7 +4,10 @@
   "description": "He who lives day by day, who dies hour by hour, is here and there.",
   "main": "index.html",
   "scripts": {
-    "start": "python -m SimpleHTTPServer 2488",
+    "prestart": "npm run prepare:nginx",
+    "start": "nginx -c $(pwd)/conf/nginx.conf",
+    "prepare:data": "bash scripts/prepare-data.bash",
+    "prepare:nginx": "bash scripts/prepare-nginx.bash",
     "test": "echo \"Error: no test specified\" && exit 1",
     "precommit": "lint-staged"
   },
