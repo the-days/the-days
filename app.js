@@ -160,7 +160,7 @@ const skipNull = fn => data => {
 const toCelcius = fr => +((fr - 32) * 5 / 9).toFixed(1);
 const toMM = inch => +(inch * 25.4).toFixed(1);
 
-const gsodPreprocess = (raw, cityData) => {
+const gsodPreprocess = (raw, stationData, cityData) => {
   const lines = raw.split("\n");
   lines.shift();
   return {
@@ -184,15 +184,16 @@ const gsodPreprocess = (raw, cityData) => {
       return { date, tmin, tmax, prcp };
     }),
     STATION: {
-      LATITUDE: cityData.latitude,
-      LONGITUDE: cityData.longitude,
-      ELEVATION: cityData.elevation,
+      LATITUDE: stationData.latitude,
+      LONGITUDE: stationData.longitude,
+      ELEVATION: stationData.elevation,
       NAME: cityData.name,
-      CODE: cityData.name
+      CODE: stationData.name
     }
   };
 };
-let cityData = { latitude: 0.0, longitude: 0.0, elevation: 0.0, name: "" };
+let stationData = { latitude: 0.0, longitude: 0.0, elevation: 0.0, name: "" };
+let cityData = { name: "" };
 
 fetch(`https://days.ml/city/${city}`)
   .then(response => response.json())
@@ -201,13 +202,13 @@ fetch(`https://days.ml/city/${city}`)
       throw new Error("No corresponding city");
     }
     cityData = cityDatum.shift();
-    const station = cityData.stations.shift();
-    return fetch(`https://days.ml/data/${station.id}-${year}.op`);
+    stationData = cityData.stations.shift();
+    return fetch(`https://days.ml/data/${stationData.id}-${year}.op`);
   })
   .then(r => r.text())
   .then(raw => {
     // console.log(gsodPreprocess(raw, cityData));
-    const json = d3Preprocess(gsodPreprocess(raw, cityData));
+    const json = d3Preprocess(gsodPreprocess(raw, stationData, cityData));
     const days = json.DATA.length;
     angleScale.domain([0, days - 1]);
     const maxPRCP = d3.max(json.DATA, d => d.prcp);
