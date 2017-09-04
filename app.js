@@ -190,7 +190,9 @@ fetch(`https://days.ml/city/${city}`)
       throw new Error("No corresponding city");
     }
     cityData = cityDatum.shift();
-    stationData = cityData.stations.shift();
+    stationData =
+      cityData.stations.find(station => station.icao !== null) ||
+      cityData.stations[0];
     return fetch(`https://days.ml/data/${stationData.id}-${year}.op`);
   })
   .then(r => r.text())
