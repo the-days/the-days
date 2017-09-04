@@ -32,35 +32,23 @@ const generateRadialGradient = selection => {
   const gradientControl = [
     {
       offset: "0%",
-      stopColor: "rgb(0,24,35)"
+      stopColor: "#256AEA"
     },
     {
-      offset: "15%",
-      stopColor: "rgb(0,59,93)"
-    },
-    {
-      offset: "35%",
-      stopColor: "rgb(30,107,154)"
+      offset: "45%",
+      stopColor: "#1DB9D3"
     },
     {
       offset: "60%",
-      stopColor: "rgb(81,183,231)"
+      stopColor: "#1BE894"
     },
     {
-      offset: "70%",
-      stopColor: "rgb(147,222,168)"
-    },
-    {
-      offset: "80%",
-      stopColor: "rgb(253,212,95)"
-    },
-    {
-      offset: "93%",
-      stopColor: "rgb(230,108,86)"
+      offset: "85%",
+      stopColor: "#FFFC00"
     },
     {
       offset: "100%",
-      stopColor: "rgb(105,37,19)"
+      stopColor: "#FF0000"
     }
   ];
   selection
