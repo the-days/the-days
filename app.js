@@ -1,5 +1,15 @@
-const city = `${location.hash.substring(1)}`;
-const year = 2016;
+const parseQueryString = () => {
+  return location.search
+    .substring(1)
+    .split("&")
+    .reduce((accumulator, currentValue) => {
+      const [key, value] = currentValue.split("=").map(decodeURIComponent);
+      accumulator[key] = value;
+      return accumulator;
+    }, {});
+};
+
+const { city, year = 2016 } = parseQueryString();
 const margin = 20,
   WIDTH = Math.min(window.innerWidth, 1.3 * window.innerHeight) - margin,
   HEIGHT = window.innerHeight - margin,
@@ -183,7 +193,7 @@ const gsodPreprocess = (raw, stationData, cityData) => {
 let stationData = { latitude: 0.0, longitude: 0.0, elevation: 0.0, name: "" };
 let cityData = { name: "" };
 
-fetch(`https://days.ml/city/${city}`)
+fetch(`https://days.ml/search/city?name=${city}&year=${year}`)
   .then(response => response.json())
   .then(cityDatum => {
     if (cityDatum.length === 0) {
