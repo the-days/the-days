@@ -9,10 +9,10 @@ import (
 )
 
 // http://download.geonames.org/export/dump/cities5000.zip
-const CITIES_FILE = "./cities5000.zip"
+const CITIES_FILE = "data/cities5000.zip"
 
 // http://download.geonames.org/export/dump/alternateNames.zip
-const NAMES_FILE = "./alternateNames.zip"
+const NAMES_FILE = "data/alternateNames.zip"
 
 type AlternateNames struct {
 	Name     string `json:"name"`

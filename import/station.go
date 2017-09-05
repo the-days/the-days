@@ -8,7 +8,7 @@ import (
 )
 
 // ftp://ftp.ncdc.noaa.gov/pub/data/noaa/isd-history.txt
-const STATIONS_FILE = "./isd-history.txt"
+const STATIONS_FILE = "data/isd-history.txt"
 
 func main() {
 	conn, err := pgx.Connect(pgx.ConnConfig{

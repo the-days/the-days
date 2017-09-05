@@ -66,7 +66,7 @@ func getFiles(output chan File) {
 			}
 			defer tarFile.Close()
 			tarReader := tar.NewReader(tarFile)
-			var number int
+			log.Println(path)
 			for {
 				header, err := tarReader.Next()
 				if err == io.EOF {
@@ -86,8 +86,6 @@ func getFiles(output chan File) {
 				if err != nil {
 					panic(err)
 				}
-				number++
-				log.Println(path, number)
 				output <- File{
 					name: header.Name,
 					data: data,
