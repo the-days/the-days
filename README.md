@@ -6,7 +6,7 @@ He who lives day by day,  who dies hour by hour, is here and there.
 This is a small implementation of [weather radials](http://weather-radials.com/) inspired by [raureif](http://raureif.net/en/). 
 It digests daily weather of 2015 into a vivid infograph.
 
-# [Demo](https://the-days.ml/#上海)
+# [Demo](https://days.ml/#上海)
 ![It should look like this](example.png)
 
 # Usage
