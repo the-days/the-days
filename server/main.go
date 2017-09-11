@@ -11,16 +11,17 @@ import (
 )
 
 const CitySQL = `SELECT cities.name, cities.alternate_names AS names, cities.country, cities.link,
-    cities.coordinate[0] AS latitude, cities.coordinate[1] AS longitude, cities.elevation,
-    cities.population,
+    cities.coordinate[0] AS latitude, cities.coordinate[1] AS longitude, cities.elevation, cities.population,
     jsonb_agg(jsonb_build_object('id', stations.id, 'name', stations.name, 'icao', stations.icao,
-    'country', stations.country, 'latitude', stations.coordinate[0],
-    'longitude', stations.coordinate[1], 'elevation', stations.elevation)) AS stations
+        'country', stations.country, 'latitude', stations.coordinate[0], 'longitude', stations.coordinate[1],
+        'elevation', stations.elevation, 'distance', stations.distance) ORDER BY stations.distance) AS stations
 FROM cities
-    CROSS JOIN LATERAL (SELECT * FROM stations
+    CROSS JOIN LATERAL (
+        SELECT *, cities.coordinate <-> stations.coordinate AS distance FROM stations
             INNER JOIN gsod_availability ON stations.id = gsod_availability.station_id AND gsod_availability.year = $2
                  AND gsod_availability.max_temperature > 350 AND gsod_availability.min_temperature > 350 AND gsod_availability.precipitation > 0
-        ORDER BY cities.coordinate <-> stations.coordinate LIMIT 8) stations
+            ORDER BY cities.coordinate <-> stations.coordinate LIMIT 8
+        ) AS stations
     WHERE cities.alternate_names @> ('[{"name": "' || $1 || '"}]')::JSONB
 GROUP BY cities.id`
 

@@ -201,7 +201,7 @@ fetch(`https://days.ml/search/city?name=${city}&year=${year}`)
     }
     cityData = cityDatum.shift();
     stationData =
-      cityData.stations.find(station => station.icao !== null) ||
+      cityData.stations.find(station => station.icao !== null && station.distance < 1) ||
       cityData.stations[0];
     return fetch(`https://days.ml/data/${stationData.id}-${year}.op`);
   })
